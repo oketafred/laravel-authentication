@@ -8,6 +8,7 @@ use App\Http\Resources\UserResource;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -20,7 +21,7 @@ class UserController extends Controller
      */
     public function index(): AnonymousResourceCollection
     {
-        $users = User::query()->orderBy('id', 'DESC')->paginate(10);
+        $users = User::query()->orderBy('id', 'DESC')->paginate(20);
         return UserResource::collection($users);
     }
 
@@ -33,7 +34,7 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $data['password'] = bcrypt($data['password']);
+        $data['password'] = Hash::make($data['password']);
 
         $user = User::query()->create($data);
         return response()->json(new UserResource($user), Response::HTTP_CREATED);
@@ -61,7 +62,7 @@ class UserController extends Controller
     {
         $data = $request->validated();
         if (isset($data['password'])) {
-            $data['password'] = bcrypt($data['password']);
+            $data['password'] = Hash::make($data['password']);
         }
         $user->update($data);
 
