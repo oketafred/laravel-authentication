@@ -9,7 +9,9 @@ use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterRequest;
+use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -33,7 +35,7 @@ class AuthController extends Controller
         $user = User::query()->create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => bcrypt($data['password'])
+            'password' => Hash::make($data['password'])
         ]);
 
         $token = $user->createToken('main')->plainTextToken;
@@ -46,5 +48,17 @@ class AuthController extends Controller
         $user = $request->user();
         $user->currentAccessToken()->delete();
         return response()->noContent();
+    }
+
+    public function user(Request $request): ?JsonResponse
+    {
+        try {
+            return response()->json($request->user(), 200);
+        } catch (Throwable $throwable) {
+            return response()->json([
+                'status' => false,
+                'message' => $throwable->getMessage()
+            ], 500);
+        }
     }
 }
